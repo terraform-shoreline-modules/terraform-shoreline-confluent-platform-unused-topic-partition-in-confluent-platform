@@ -1,0 +1,202 @@
+{
+  "name": "unused_topic_partition_in_confluent_platform",
+  "description": "This incident type indicates that there is an unused topic partition in the Confluent Platform. This can lead to reduced efficiency and increased Broker overhead. It is recommended to delete unused partitions to avoid these issues. This incident may be triggered by a monitoring tool or an alert and can be resolved by verifying if the unused partition is intentional and deleting it if required.",
+  "params": [
+    {
+      "name": "PATH_TO_KAFKA_FOLDER",
+      "value": ""
+    },
+    {
+      "name": "KAFKA_BROKER_ADDRESS",
+      "value": ""
+    },
+    {
+      "name": "ZOOKEEPER_PORT",
+      "value": ""
+    },
+    {
+      "name": "CONFLUENT_PATH",
+      "value": ""
+    },
+    {
+      "name": "TOPIC_NAME",
+      "value": ""
+    },
+    {
+      "name": "ZOOKEEPER_HOST",
+      "value": ""
+    },
+    {
+      "name": "PARTITION_NAME",
+      "value": ""
+    },
+    {
+      "name": "PARTITION_NUMBER",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Unused topic partition in Confluent Platform\nThis incident type indicates that there is an unused topic partition in the Confluent Platform. This can lead to reduced efficiency and increased Broker overhead. It is recommended to delete unused partitions to avoid these issues. This incident may be triggered by a monitoring tool or an alert and can be resolved by verifying if the unused partition is intentional and deleting it if required."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the status of the Kafka brokers"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `systemctl status kafka.service`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if the topic exists"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `${CONFLUENT_PATH}/bin/kafka-topics --zookeeper ${ZOOKEEPER_HOST}:${ZOOKEEPER_PORT} --describe --topic ${TOPIC_NAME}`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## List all the Kafka topics"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `${CONFLUENT_PATH}/bin/kafka-topics --zookeeper ${ZOOKEEPER_HOST}:${ZOOKEEPER_PORT} --list`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the disk usage of the Kafka brokers"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `df -h`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the available memory"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `free -h`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the Kafka logs"
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `tail -f ${CONFLUENT_PATH}/logs/kafka.log`"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the Zookeeper logs"
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `tail -f ${CONFLUENT_PATH}/logs/zookeeper.log`"
+    },
+    {
+      "name": "cell_16",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## A new topic partition was created and then left unused by mistake."
+    },
+    {
+      "name": "cell_17",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_partition_checker($KAFKA_BROKER_ADDRESS, $TOPIC_NAME, $PARTITION_NUMBER)"
+    },
+    {
+      "name": "cell_18",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## A topic partition was purposely left unused, but the overhead caused by it was not considered."
+    },
+    {
+      "name": "cell_19",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_kafka_partition_usage($TOPIC_NAME, $PARTITION_NUMBER)"
+    },
+    {
+      "name": "cell_20",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Verify the partition is actually unused."
+    },
+    {
+      "name": "cell_21",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_partition_details($PATH_TO_KAFKA_FOLDER, $TOPIC_NAME, $PARTITION_NUMBER)"
+    },
+    {
+      "name": "cell_22",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## If the partition is unused, delete it to reduce Broker overhead."
+    },
+    {
+      "name": "cell_23",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_del_unused_part($ZOOKEEPER_PORT, $TOPIC_NAME, $ZOOKEEPER_HOST, $PARTITION_NAME)"
+    },
+    {
+      "name": "cell_24",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Verify the partition is actually unused."
+    },
+    {
+      "name": "cell_25",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_kafka_partition_status($PATH_TO_KAFKA_FOLDER, $TOPIC_NAME, $PARTITION_NUMBER)"
+    }
+  ]
+}
